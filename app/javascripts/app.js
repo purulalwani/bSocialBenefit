@@ -8,45 +8,98 @@ import citizen_artifacts from '../../build/contracts/Citizen.json'
 import document_artifacts from '../../build/contracts/Document.json'
 
 // Patient is our usable abstraction, which we'll use through the code below.
-var Citizen = contract(patient_artifacts);
-var Document = contract(condition_artifacts);
+var Citizen = contract(citizen_artifacts);
+var Document = contract(document_artifacts);
 
 var accounts, account;
 var myCitizenInstance;
 var myDocumentInstance;
 
-// Initialize
+// Create New Citizen
 function newCitizen() {
   console.log("Create new Citizen");
 
-  web3.personal.unlockAccount(accounts[0], "BE1010be");
-  Citizen.setProvider(web3.currentProvider);
+var account = web3.personal.newAccount("BE1010be");
+  //web3.personal.newAccount("BE1010be").then(function(account){
 
-	Citizen.at({from: accounts[0], gas: 4712386}).then(
-	function(patient) {
-		console.log(patient);
-		myPatientInstance = patient;
-    console.log("Patient contract address...." + myPatientInstance.address);
-		//$("#patientContractAddress").html(myPatientInstance.address);
+if(account != null && account != ''){
+  //var account = acc1.result;
+    web3.personal.unlockAccount(accounts[0], "BE1010be");
+    web3.eth.sendTransaction({from:accounts[0], to:account, value:20000000000000000000}, function(error, result){
+      if(error){
+        alert("Issue creating the account, please try after sometime");
+      }
 
-	});
+      var transaction = web3.eth.getTransaction(result);
+
+
+      while(transaction.blockNumber == null || transaction.blockNumber <= 0){
+        transaction = web3.eth.getTransaction(result);
+        console.log("waiting for transaction to mined...");
+      }
+      Citizen.setProvider(web3.currentProvider);
+      web3.personal.unlockAccount(account, "BE1010be");
+    	Citizen.new({from: account, gas: 4712386}).then(
+    	function(citizen) {
+    		console.log(citizen);
+    		myCitizenInstance = citizen;
+        console.log("Citizen contract address...." + myCitizenInstance.address);
+        console.log("Citizen account address...." + account);
+
+        $("#contractAddress").val(myCitizenInstance.address);
+        $("#accountAddress").val(account);
+    		//$("#patientContractAddress").html(myPatientInstance.address);
+
+    	});
+    });
+  }else{
+    alert("Issue creating the account, please try after sometime");
+  }
+  //});
+
+
+}
+
+// Existing Citizen
+function exisitingCitizen(account, contract) {
+  console.log("Exsiting Citizen");
+
+
+      Citizen.setProvider(web3.currentProvider);
+      web3.personal.unlockAccount(account, "BE1010be");
+    	Citizen.at(contract).then(
+    	function(citizen) {
+    		console.log(citizen);
+    		myCitizenInstance = citizen;
+        console.log("Citizen contract address...." + myCitizenInstance.address);
+        console.log("Citizen account address...." + account);
+
+        $("#contractAddress").val(myCitizenInstance.address);
+        $("#accountAddress").val(account);
+    		//$("#patientContractAddress").html(myPatientInstance.address);
+
+    	});
+
+
+
 }
 
 
-// // Update Patient
-function updatePatient(name, dob, gender, condition) {
+// // Update Citizen
+function updateCitizen(name, dob, gender, income, caste) {
 
-console.log("Updating patient...");
-console.log("update patinet - unlock account....");
-web3.personal.unlockAccount(accounts[0], "BE1010be");
+console.log("Updating Citizen...");
+console.log("update citizen - unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
 
-console.log("Updating patient");
+console.log("Updating citizen");
 
-myPatientInstance.setPatient(name, dob, gender, condition, condition, {from: accounts[0], gas: 4712387}).then(
+myCitizenInstance.setCitizen(name, dob, gender, income, caste, {from: accountAddress, gas: 4712387}).then(
         		function(){
-              $("#updatePatientResult").html("Patient updated successfully");
+              $("#updateCitizenResult").html("Citizen updated successfully");
 
-              getPatientChangeEventLog();
+              getCitizenChangeEventLog();
             }
 
           );
@@ -71,19 +124,20 @@ myPatientInstance.setPatient(name, dob, gender, condition, condition, {from: acc
 }
 
 // // Update Patient Name
-function updatePatientName(name) {
+function updateCitizenName(name) {
 
-console.log("Updating patient name...");
-console.log("update patinet name- unlock account....");
-web3.personal.unlockAccount(accounts[0], "BE1010be");
+console.log("Updating citizen name...");
+console.log("update citizen name- unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
 
 
 
-myPatientInstance.setName(name, {from: accounts[0], gas: 4712387}).then(
+myCitizenInstance.setName(name, {from: accountAddress, gas: 4712387}).then(
         		function(){
-              $("#updatePatientResult").html("Patient name updated successfully");
+              $("#updateCitizenResult").html("Citizen name updated successfully");
 
-              getPatientChangeEventLog();
+              getCitizenChangeEventLog();
             }
 
           );
@@ -107,57 +161,21 @@ myPatientInstance.setName(name, {from: accounts[0], gas: 4712387}).then(
 // 		});
 }
 
-// // Update Patient DOB
-function updatePatientDOB(dob) {
+// // Update Citizen DOB
+function updateCitizenDOB(dob) {
 
-console.log("Updating patient dob...");
-console.log("update patient dob - unlock account....");
-web3.personal.unlockAccount(accounts[0], "BE1010be");
+console.log("Updating citizen dob...");
+console.log("update citizen dob - unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
 
 
 
-myPatientInstance.setDateOfBirth(dob, {from: accounts[0], gas: 4712387}).then(
+myCitizenInstance.setDateOfBirth(dob, {from: accountAddress, gas: 4712387}).then(
         		function(){
-              $("#updatePatientResult").html("Patient DOB updated successfully");
+              $("#updateCitizenResult").html("Citizen DOB updated successfully");
 
-              getPatientChangeEventLog();
-            }
-
-          );
-
-// console.log("Calling SetName...");
-// 	myPatientInstance.SetName(name, {from: accounts[0], gas: 4712387}).then(
-// 		function() {
-//       console.log("Calling SetDateOfBirth...");
-//       myPatientInstance.SetDateOfBirth(dob, {from: accounts[0], gas: 4712387}).then(
-//     		function() {
-//           console.log("Calling SetGender...");
-//           myPatientInstance.SetGender(gender, {from: accounts[0], gas: 4712387}).then(
-//         		function(){
-//               $("#updatePatientResult").html("Patient updated successfully");
-//
-//               getPatientChangeEventLog();
-//             }
-//
-//             )
-//     		})
-// 		});
-}
-
-// // Update Patient Gender
-function updatePatientGender(gender) {
-
-console.log("Updating patient gender...");
-console.log("update patient gender - unlock account....");
-web3.personal.unlockAccount(accounts[0], "BE1010be");
-
-
-
-myPatientInstance.setGender(gender, {from: accounts[0], gas: 4712387}).then(
-        		function(){
-              $("#updatePatientResult").html("Patient gender updated successfully");
-
-              getPatientChangeEventLog();
+              getCitizenChangeEventLog();
             }
 
           );
@@ -165,20 +183,65 @@ myPatientInstance.setGender(gender, {from: accounts[0], gas: 4712387}).then(
 
 }
 
-// // Update Patient Condition
-function updatePatientCondition(condition) {
+// // Update Citizen Gender
+function updateCitizenGender(gender) {
 
-console.log("Updating patient condition...");
-console.log("update patient condition - unlock account....");
-web3.personal.unlockAccount(accounts[0], "BE1010be");
+console.log("Updating citizen gender...");
+console.log("update citizen gender - unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
 
 
 
-myPatientInstance.addCondition(condition, condition, {from: accounts[0], gas: 4712387}).then(
+myCitizenInstance.setGender(gender, {from: accountAddress, gas: 4712387}).then(
         		function(){
-              $("#updatePatientResult").html("Patient condition updated successfully");
+              $("#updateCitizenResult").html("Citizen gender updated successfully");
 
-              getPatientChangeEventLog();
+              getCitizenChangeEventLog();
+            }
+
+          );
+
+
+}
+
+// // Update Citizen Caste
+function updateCitizenCaste(caste) {
+
+console.log("Updating Citizen Caste...");
+console.log("update Citizen caste - unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
+
+
+
+myCitizenInstance.setCaste(caste, {from: accountAddress, gas: 4712387}).then(
+        		function(){
+              $("#updateCitizenResult").html("Citizen caste updated successfully");
+
+              getCitizenChangeEventLog();
+            }
+
+          );
+
+
+}
+
+// // Update Citizen Income
+function updateCitizenIncome(income) {
+
+console.log("Updating Citizen income...");
+console.log("update Citizen income - unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
+
+
+
+myCitizenInstance.setIncome(income, {from: accountAddress, gas: 4712387}).then(
+        		function(){
+              $("#updateCitizenResult").html("Citizen income updated successfully");
+
+              getCitizenChangeEventLog();
             }
 
           );
@@ -187,7 +250,7 @@ myPatientInstance.addCondition(condition, condition, {from: accounts[0], gas: 47
 }
 
 // Read audit log
-function getPatientChangeEventLog(){
+function getCitizenChangeEventLog(){
 
 //   var patientChangedEventAll = myPatientInstance.PatientChanged({},
 //     {address:myPatientInstance.address
@@ -209,34 +272,35 @@ function getPatientChangeEventLog(){
 
 
 
-  var logFilter = web3.eth.filter({address:myPatientInstance.address
+  var logFilter = web3.eth.filter({address:myCitizenInstance.address
     , fromBlock:0});
    logFilter.get(function(error, result){
     if(!error){
-      console.log("Patient chnage event: " + result);
+      console.log("Citizen chnage event: " + result);
 
-      var patientLogTable = $("#patientLog");
-      var patientLogHtml = "<tr><th>Event</th><th>Name</th><th>DOB</th><th>Gender</th><th>Conditions</th><th>Block #</th></tr>";
+      var citizenLogTable = $("#citizenLog");
+      var citizenLogHtml = "<tr><th>Event</th><th>Name</th><th>DOB</th><th>Gender</th><th>Caste</th><th>Income</th><th>Block #</th></tr>";
       result.forEach(function(e) {
-        var abi = patient_artifacts.abi;
-        var data = ethjsabi.decodeEvent(abi[9], e.data);
+        var abi = citizen_artifacts.abi;
+        var data = ethjsabi.decodeEvent(abi[16], e.data);
         //console.log(data);
         console.log("Decode Data: " + data[0]);
 
-        var pi = web3.eth.contract(abi).at(e.address);
+        var ci = web3.eth.contract(abi).at(e.address);
 
-        console.log("Name=" + pi.name.call(e.blockNumber));
-        console.log("dateOfBirth=" + pi.dateOfBirth.call(e.blockNumber));
-        console.log("gender=" + pi.gender.call(e.blockNumber));
+        console.log("Name=" + ci.name.call(e.blockNumber));
+        console.log("dateOfBirth=" + ci.dateOfBirth.call(e.blockNumber));
+        console.log("gender=" + ci.gender.call(e.blockNumber));
 
-        var name = pi.name.call(e.blockNumber);
-        var dob = pi.dateOfBirth.call(e.blockNumber);
-        var gender = pi.gender.call(e.blockNumber);
-        var conditions = pi.getCondition.call(e.blockNumber);
+        var name = ci.name.call(e.blockNumber);
+        var dob = ci.dateOfBirth.call(e.blockNumber);
+        var gender = ci.gender.call(e.blockNumber);
+        var caste = ci.caste.call(e.blockNumber);
+        var income = ci.income.call(e.blockNumber);
 
-        var formatedConditions = formatConditions(conditions);
+        //var formatedConditions = formatConditions(conditions);
 
-        patientLogHtml = patientLogHtml + "<tr><td>" + data[0] + "</td><td>" + name + "</td><td>" + dob + "</td><td>" + gender + "</td><td>" + formatedConditions + "</td><td>" + e.blockNumber + "</td></tr>";
+        citizenLogHtml = citizenLogHtml + "<tr><td>" + data[0] + "</td><td>" + name + "</td><td>" + dob + "</td><td>" + gender + "</td><td>" + caste + "</td><td>" + income + "</td><td>" + e.blockNumber + "</td></tr>";
 
         // web3.eth.getBlock(e.blockNumber, function(err, block) {
         //   myPatientInstance.name(e.blockNumber, function(err,name) {
@@ -254,7 +318,7 @@ function getPatientChangeEventLog(){
       }
     );
 
-    patientLogTable.html(patientLogHtml);
+    citizenLogTable.html(citizenLogHtml);
     }
   });
 
@@ -317,15 +381,15 @@ console.log("window onload...");
     }else if (userType == 'Existing'){
       if(accountAddress != '' && contractAddress != ''){
         if(entity == 'Citizen'){
-
+          exisitingCitizen(accountAddress, contractAddress);
         }else if(entity == 'Department'){
-
+          exisitingDepartment(accountAddress, contractAddress);
         }
     }else{
       alert("Please enter Account/Contract Address Or create new account/contract");
     }
     }
-    updateCitizen(name, dob, gender, income, caste);
+    //updateCitizen(name, dob, gender, income, caste);
   });
 
 	$("#updateCitizen").click(function() {
@@ -337,30 +401,36 @@ console.log("window onload...");
 		updateCitizen(name, dob, gender, income, caste);
 	});
 
-  $("#updatePatientName").click(function() {
+  $("#updateCitizenName").click(function() {
 
-    var name = $("#patientName").val();
-		updatePatientName(name);
+    var name = $("#citizenName").val();
+		updateCitizenName(name);
 	});
 
-  $("#updatePatientDOB").click(function() {
-		var dob = $("#patientDOB").val();
+  $("#updateCitizenDOB").click(function() {
+		var dob = $("#citizenDOB").val();
 
-		updatePatientDOB(dob);
+		updateCitizenDOB(dob);
 
     });
 
-  $("#updatePatientGender").click(function() {
+  $("#updateCitizenGender").click(function() {
 
-    var gender = $("#patientGender").val();
+    var gender = $("#citizenGender").val();
 
-		updatePatientGender(gender);
+		updateCitizenGender(gender);
 	});
 
-  $("#updatePatientCondition").click(function() {
+  $("#updateCitizenIncome").click(function() {
 
-    var condition = $("#patientCondition").val();
-		updatePatientCondition(condition);
+    var income = $("#citizenIncome").val();
+		updateCitizenIncome(income);
+	});
+
+  $("#updateCitizenCaste").click(function() {
+
+    var caste = $("#citizenCaste").val();
+		updateCitizenCaste(caste);
 	});
 
 

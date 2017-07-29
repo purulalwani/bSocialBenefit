@@ -54,3 +54,12 @@ var conditionByteCode = "0x6060604052341561000f57600080fd5b604051610565380380610
 var conditionInstance = conditionContract.new({from: from, data:conditionByteCode, gas: 4712386})
 
 var conditionInstance = conditionContract.at('0x0c9e00a06bdcb7e28b0bc32c1da2484abacf32e6')
+
+
+-------------------------------------------------------
+
+
+Citizen 1
+
+Account Address: 0xf60dd0a72868795d57701d66dd0371b0304c544a
+Contract Address: 0x48975703283747c9b790356ff8f4519169987709
