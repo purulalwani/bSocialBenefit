@@ -6,14 +6,33 @@ import ethjsabi from 'ethjs-abi';
 // Import our contract artifacts and turn them into usable abstractions.
 import citizen_artifacts from '../../build/contracts/Citizen.json'
 import document_artifacts from '../../build/contracts/Document.json'
+import scheme_artifacts from '../../build/contracts/Scheme.json'
+import department_artifacts from '../../build/contracts/Department.json'
+import departments_artifacts from '../../build/contracts/Departments.json'
+import eligibility_artifacts from '../../build/contracts/Eligibility.json'
+import benefit_artifacts from '../../build/contracts/Benefit.json'
+import schemeEnrolled_artifacts from '../../build/contracts/SchemeEnrolled.json'
 
 // Patient is our usable abstraction, which we'll use through the code below.
 var Citizen = contract(citizen_artifacts);
 var Document = contract(document_artifacts);
+var Scheme = contract(scheme_artifacts);
+var Department = contract(department_artifacts);
+var Departments = contract(departments_artifacts);
+var Eligibility = contract(eligibility_artifacts);
+var Benefit = contract(benefit_artifacts);
+var SchemeEnrolled = contract(schemeEnrolled_artifacts);
 
 var accounts, account;
 var myCitizenInstance;
-var myDocumentInstance;
+var mySchemeInstance;
+var myDepartmentInstance;
+var myDepartmentsInstance;
+var myEligibilityInstance;
+var myBenefitInstance;
+var SchemeEnrolled;
+var schemesPerDepartment = 0;
+var departmentsAddress = '0xf22691a02d5f598fcea40308c442deea90c7817b';
 
 // Create New Citizen
 function newCitizen() {
@@ -76,6 +95,7 @@ function exisitingCitizen(account, contract) {
 
         $("#contractAddress").val(myCitizenInstance.address);
         $("#accountAddress").val(account);
+        //fetchCitizenProfile();
     		//$("#patientContractAddress").html(myPatientInstance.address);
 
     	});
@@ -302,19 +322,7 @@ function getCitizenChangeEventLog(){
 
         citizenLogHtml = citizenLogHtml + "<tr><td>" + data[0] + "</td><td>" + name + "</td><td>" + dob + "</td><td>" + gender + "</td><td>" + caste + "</td><td>" + income + "</td><td>" + e.blockNumber + "</td></tr>";
 
-        // web3.eth.getBlock(e.blockNumber, function(err, block) {
-        //   myPatientInstance.name(e.blockNumber, function(err,name) {
-        //     myPatientInstance.dateOfBirth(e.blockNumber, function(err,dateOfBirth) {
-        //       myPatientInstance.gender(e.blockNumber, function(err,gender) {
-        //         // Add an object with all the data so it can be displayed
-        //         console.log("Name: " + name);
-        //         console.log("DOB: " + dateOfBirth);
-        //         console.log("gender: " + gender);
-        //
-        //       });
-        //     });
-        //   });
-        //   });
+
       }
     );
 
@@ -339,6 +347,199 @@ function formatConditions(conditions){
   }
 
   return formatedConditions;
+}
+
+/** Department code */
+
+// Create New Department
+function newDepartment() {
+  console.log("Create new department");
+
+var account = web3.personal.newAccount("BE1010be");
+  //web3.personal.newAccount("BE1010be").then(function(account){
+
+if(account != null && account != ''){
+  //var account = acc1.result;
+    web3.personal.unlockAccount(accounts[0], "BE1010be");
+    web3.eth.sendTransaction({from:accounts[0], to:account, value:20000000000000000000}, function(error, result){
+      if(error){
+        alert("Issue creating the account, please try after sometime");
+      }
+
+      var transaction = web3.eth.getTransaction(result);
+
+
+      while(transaction.blockNumber == null || transaction.blockNumber <= 0){
+        transaction = web3.eth.getTransaction(result);
+        console.log("waiting for transaction to mined...");
+      }
+      Department.setProvider(web3.currentProvider);
+      web3.personal.unlockAccount(account, "BE1010be");
+    	Department.new({from: account, gas: 4712386}).then(
+    	function(department) {
+    		console.log(department);
+    		myDepartmentInstance = department;
+        console.log("Department contract address...." + myDepartmentInstance.address);
+        console.log("Department account address...." + account);
+
+        $("#contractAddress").val(myDepartmentInstance.address);
+        $("#accountAddress").val(account);
+        $("#departmentName").val("");
+
+        addToDepartments(account, myDepartmentInstance.address);
+
+
+    		//$("#patientContractAddress").html(myPatientInstance.address);
+
+    	});
+    });
+  }else{
+    alert("Issue creating the account, please try after sometime");
+  }
+  //});
+
+
+}
+
+function addToDepartments(account, address){
+  var departmentsAbi = departments_artifacts.abi;
+  var di = web3.eth.contract(departmentsAbi).at(departmentsAddress);
+  di.addDepartment(address, {from: account, gas: 4712387});
+}
+
+// Existing Department
+function exisitingDepartment(account, contract) {
+  console.log("Exsiting Department");
+
+
+      Department.setProvider(web3.currentProvider);
+      web3.personal.unlockAccount(account, "BE1010be");
+    	Department.at(contract).then(
+    	function(department) {
+    		console.log(department);
+    		myDepartmentInstance = department;
+        console.log("Department contract address...." + myDepartmentInstance.address);
+        console.log("Department account address...." + account);
+
+        $("#contractAddress").val(myDepartmentInstance.address);
+        $("#accountAddress").val(account);
+        fetchDepartmentProfile();
+    		//$("#patientContractAddress").html(myPatientInstance.address);
+
+    	});
+
+
+
+}
+
+function fetchDepartmentProfile(){
+
+  myDepartmentInstance.name.call().then(function(result){
+    $("#departmentName").val(result);
+  });
+
+  var departmentSchemeTable = $("#departmentScheme");
+
+  var schemeHtml = '<tr><th>Name</th><th>Eligibility</th><th>Benefit</th><th>Action</td></tr>';
+  var departmentAbi = department_artifacts.abi;
+  var di = web3.eth.contract(departmentAbi).at(myDepartmentInstance.address);
+  var schemes = di.getSchemes.call();
+  for (var i = 0; i < schemes.length; i++) {
+
+  if(schemes[i] != null && schemes[i] != ""){
+    var schemeAbi = scheme_artifacts.abi;
+    var dsi = web3.eth.contract(schemeAbi).at(schemes[i]);
+    var schemeName = dsi.name.call();
+    var eligibility = dsi.elig.call();
+    // var eligibilityStr = ""
+    // for(var j = 0; j < eligibility.length; j++){
+    //   if(j != 0 ) eligibilityStr = eligibilityStr + ";";
+    //   var eligibilityAbi = eligibility_artifacts.abi;
+    //   var dsi = web3.eth.contract(eligibilityAbi).at(eligibility[j]);
+    //   var eligibilityKey = dsi.key.call();
+    //   var eligibilityValue = dsi.value.call();
+    //   eligibilityStr = eligibilityKey + "=" + eligibilityValue;
+    // }
+    var benefit = dsi.bene.call();
+    // var benefitStr = ""
+    // for(var j = 0; j < benefits.length; j++){
+    //   if(j != 0 ) benefitStr = benefitsStr + ";";
+    //   var benefitAbi = benefit_artifacts.abi;
+    //   var dsi = web3.eth.contract(benefitAbi).at(benefits[j]);
+    //   var benefitKey = dsi.key.call();
+    //   var benefitValue = dsi.value.call();
+    //   benefitStr = benefitKey + "=" + benefitValue;
+    // }
+
+
+  }
+
+  schemeHtml = schemeHtml + '<tr><td><input type="text" id="schemeName'+schemesPerDepartment+'" value="'+ schemeName + '"/></td><td><input type="text" id="schemeEligibility'+schemesPerDepartment+'" value="'+eligibility+'"/></td><td><input type="text" id="schemeBenefit'+schemesPerDepartment+'" value="'+benefit+'"/></td><td><button id="editScheme'+schemesPerDepartment+'">Edit</button></td></tr>';;
+  departmentSchemeTable.html(schemeHtml);
+  schemesPerDepartment++;
+  }
+
+}
+
+
+// // Update Department Name
+function updateDepartmentName(name) {
+
+console.log("Updating Department name...");
+console.log("update department name- unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
+
+
+
+myDepartmentInstance.setName(name, {from: accountAddress, gas: 4712387}).then(
+        		function(){
+              $("#updateDepartmentResult").html("Department name updated successfully");
+
+              //getCitizenChangeEventLog();
+            }
+
+          );
+
+
+}
+
+// // save scheme
+function saveScheme(name, eligibility, benefit) {
+
+console.log("Saving scheme...");
+console.log("Saving scheme- unlock account....");
+var accountAddress = $("#accountAddress").val();
+web3.personal.unlockAccount(accountAddress, "BE1010be");
+
+
+
+myDepartmentInstance.addScheme(name, eligibility, benefit, {from: accountAddress, gas: 4712387}).then(function(error, result){
+              if(error) console.log(error);
+              // var eattrs = eligibility.split(";");
+              // var schemeAbi = scheme_artifacts.abi;
+              // var dsi = web3.eth.contract(schemeAbi).at(result);
+              // console.log(eattrs.length);
+              // for(var i = 0; i < eattrs.length; i++){
+              //   var temp = eattrs[i].split("=");
+              //   dsi.addEligibility(temp[0], temp[1], {from: accountAddress, gas: 4712387});
+              //  }
+              //
+              // var battrs = benefit.split(";");
+              // for(var i=0; i < battrs.length; i++){
+              //   var temp = battrs[i].split("=");
+              //   dsi.addBenefit(temp[0], temp[1], {from: accountAddress, gas: 4712387});
+              // }
+
+              $("#saveSchemeResult").html("Scheme added successfully");
+              fetchDepartmentProfile();
+
+              //getCitizenChangeEventLog();
+            }
+
+          );
+
+
 }
 
 window.onload = function() {
@@ -392,6 +593,10 @@ console.log("window onload...");
     //updateCitizen(name, dob, gender, income, caste);
   });
 
+  /**
+  Citizen Related Code
+  */
+
 	$("#updateCitizen").click(function() {
 		var name = $("#citizenName").val();
 		var dob = $("#citizenDOB").val();
@@ -433,7 +638,44 @@ console.log("window onload...");
 		updateCitizenCaste(caste);
 	});
 
+  /**
+  Department related code
+  */
 
+  $("#updateDepartmentName").click(function() {
+
+    var name = $("#departmentName").val();
+    updateDepartmentName(name);
+  });
+
+  $("#addSchemeRow").click(function() {
+
+    var departmentSchemeTable = $("#departmentScheme");
+
+    var schemeHtml = '<tr><td><input type="text" id="schemeName" /></td><td><input type="text" id="schemeEligibility" /></td><td><input type="text" id="schemeBenefit"/></td><td><button id="saveScheme">Save</button></td></tr>';
+    departmentSchemeTable.append(schemeHtml);
+    $("#saveScheme").click(function() {
+
+      var name = $("#schemeName").val();
+      var eligibility = $("#schemeEligibility").val();
+      var benefit = $("#schemeEligibility").val();
+
+
+      saveScheme(name, eligibility, benefit);
+
+    });
+
+  });
+
+  $("#saveScheme").click(function() {
+
+    var name = $("#schemeName").val();
+    var eligibility = $("#schemeEligibility").val();
+    var benefit = $("#schemeEligibility").val();
+
+
+    saveScheme(name, eligibility, benefit);
+  });
 
 
 };

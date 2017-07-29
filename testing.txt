@@ -61,5 +61,19 @@ var conditionInstance = conditionContract.at('0x0c9e00a06bdcb7e28b0bc32c1da2484a
 
 Citizen 1
 
-Account Address: 0xf60dd0a72868795d57701d66dd0371b0304c544a
-Contract Address: 0x48975703283747c9b790356ff8f4519169987709
+Account Address: 0xe67a336e259e997d018f133f9bd72fa66166d7bb
+Contract Address: 0x8f202d318c692e9c14dd8ebe8bef6ecc1a5eb20c
+
+Citizen 2
+
+Account Address: 0xce88f464d8fc9ec0fad6415c86281ee7bbbf31a9
+Contract Address: 0x87c59372b15916fc1a00ffd857e9039083bab3f1
+
+Department 1
+Account Address: 0x61ccd4aadd70041dc86b3199e02e92055bec77c6
+Contract Address: 0x3019f4f44da2cd9f05d7a82b09b012f27c9dc574
+
+Department 2
+
+Account Address: 0xa0babe1c872221f5aba30426210aac5ad974ccf2
+Contract Address: 0xdf27fbe7af288e216c3971643374dd6a676e7f0a
