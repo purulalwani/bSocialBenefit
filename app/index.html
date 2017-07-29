@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Social Welfare Benefits DApp</title>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .section {
+      margin: 20px;
+    }
+    button {
+      padding: 5px 16px;
+      border-radius: 4px;
+    }
+    button#changeQuota { background-color: yellow; }
+    button#buyTicket { background-color: #98fb98; }
+    button#refundTicket { background-color: pink; }
+    button#createWallet { background-color: #add8e6; }
+    #seed {color: green;}
+
+    table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #dddddd;
+    }
+  </style>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="./app.js"></script>
+</head>
+<body>
+  <h1>Social Welfare Benefits DApp</h1>
+  <div class="section">
+    <!-- Patient Contract deployed at: <div id="patientContractAddress"></div> -->
+    User Type:  <select id="userType">
+      <option value="New">New</option>
+      <option value="Existing">Existing</option>
+  </select>
+
+    Entity:  <select id="entity">
+      <option value="Citizen">Citizen</option>
+      <option value="Department">Department</option>
+  </select>
+  <br/><br/>
+  Account Address:&nbsp;&nbsp;&nbsp;&nbsp;  <input type="text" id="accountAddress" />
+  <br/><br/>
+  Contract Address:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <input type="text" id="contractAddress" />
+  <br/><br/>
+  &nbsp;&nbsp;<button id="login">Log In</button>
+
+  </div>
+
+
+  <hr/>
+
+  <div class="section">
+    <h2>Citizen Profile</h2>
+    <br/><br/>
+    Name:&nbsp;&nbsp;&nbsp;&nbsp;  <input type="text" id="citizenName" />&nbsp;&nbsp;<button id="updateCitizenName">Update Name</button>
+    <br/><br/>
+    DOB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <input type="text" id="citizenDOB" />&nbsp;&nbsp;<button id="updateCitizenDOB">Update DOB</button>
+    <br/><br/>
+    Gender:&nbsp;&nbsp;  <input type="text" id="citizenGender" />&nbsp;&nbsp;<button id="updateCitizenGender">Update Gender</button>
+    <br/><br/>
+    Gender:&nbsp;&nbsp;  <input type="text" id="citizenCaste" />&nbsp;&nbsp;<button id="updateCasteGender">Update Caste</button>
+    <br/><br/>
+    Gender:&nbsp;&nbsp;  <input type="text" id="citizenIncome" />&nbsp;&nbsp;<button id="updateIncomeGender">Update Income</button>
+    <br/><br/>
+    <!-- Condition:  <select id="patientCondition">
+  <option value="Diabetes">Diabetes</option>
+  <option value="Asthma">Asthma</option>
+  <option value="Cancer">Cancer</option>
+
+</select> &nbsp;&nbsp;<button id="updatePatientCondition">Update Condition</button> -->
+    <br/><br/>
+    <button id="updateCitizen">Update Citizen</button>
+    <br/><br/>
+      <span id="updateCitizenResult"></span>
+  </div>
+
+  <hr/>
+
+  <div class="section">
+    <h2>Citizen Change Log</h2>
+    <br/>
+    <br/>
+    <table id="citizenLog">
+      <tr>
+        <th>Event</th>
+    <th>Name</th>
+    <th>DOB</th>
+    <th>Gender</th>
+    <th>Caste</th>
+    <th>Income</th>
+    <th>Block #</th>
+  </tr>
+  <table/>
+
+  </div>
+
+  <hr/>
+
+
+
+</body>
+</html>
