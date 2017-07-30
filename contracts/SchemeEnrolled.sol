@@ -7,6 +7,10 @@ contract SchemeEnrolled {
     string public status;
 
 
+    function SchemeEnrolled(address _scheme, string _status){
+      scheme = _scheme;
+      status = _status;
+    }
     // add scheme
     function addScheme(address s) {
 

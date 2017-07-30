@@ -32,7 +32,8 @@ var myEligibilityInstance;
 var myBenefitInstance;
 var SchemeEnrolled;
 var schemesPerDepartment = 0;
-var departmentsAddress = '0xf22691a02d5f598fcea40308c442deea90c7817b';
+var citizenSchemes = 0;
+var departmentsAddress = '0x80078f36fff4853ad058dfba4b76d2d997c4b479';
 
 // Create New Citizen
 function newCitizen() {
@@ -66,7 +67,24 @@ if(account != null && account != ''){
         console.log("Citizen account address...." + account);
 
         $("#contractAddress").val(myCitizenInstance.address);
+
         $("#accountAddress").val(account);
+
+        fetchCitizenSchemes(account, myCitizenInstance.address);
+          $("#citizenName").val("");
+
+
+          $("#citizenDOB").val("");
+
+
+          $("#citizenGender").val("");
+
+
+          $("#citizenIncome").val("");
+
+
+          $("#citizenCaste").val("");
+
     		//$("#patientContractAddress").html(myPatientInstance.address);
 
     	});
@@ -95,7 +113,9 @@ function exisitingCitizen(account, contract) {
 
         $("#contractAddress").val(myCitizenInstance.address);
         $("#accountAddress").val(account);
-        //fetchCitizenProfile();
+        fetchCitizenProfile();
+        getCitizenChangeEventLog();
+        fetchCitizenSchemes(account, myCitizenInstance.address);
     		//$("#patientContractAddress").html(myPatientInstance.address);
 
     	});
@@ -104,6 +124,100 @@ function exisitingCitizen(account, contract) {
 
 }
 
+function fetchCitizenProfile(){
+
+
+  myCitizenInstance.name.call().then(function(result){
+    $("#citizenName").val(result);
+  });
+  myCitizenInstance.dateOfBirth.call().then(function(result){
+    $("#citizenDOB").val(result);
+  });
+  myCitizenInstance.gender.call().then(function(result){
+    $("#citizenGender").val(result);
+  });
+  myCitizenInstance.income.call().then(function(result){
+    $("#citizenIncome").val(result);
+  });
+  myCitizenInstance.caste.call().then(function(result){
+    $("#citizenCaste").val(result);
+  });
+
+
+}
+
+function fetchCitizenSchemes(account, address){
+
+  var citizenSchemeEnrolled = myCitizenInstance.getSchemesEnrolled.call();
+  var schemeNames = [];
+  var schemeStatus = [];
+  for(var i = 0; i<citizenSchemeEnrolled.length; i++){
+    var schemeEnrolledAbi = schemeEnrolled_artifacts.abi;
+    var sei = web3.eth.contract(schemeEnrolledAbi).at(citizenSchemeEnrolled[i]);
+    var scheme = sei.getScheme.call();
+    schemeStatus.push(sei.getStatus.call());
+    var schemeAbi = scheme_artifacts.abi;
+    var dsi = web3.eth.contract(schemeAbi).at(scheme);
+
+    var schemeName = dsi.name.call();
+    schemeNames.push(schemeName);
+  }
+  var citizenSchemeTable = $("#citizenScheme");
+
+  var schemeHtml = '<tr><th>Name</th><th>Eligibility</th><th>Benefit</th><th>Action</td></tr>';
+  var departmentsAbi = departments_artifacts.abi;
+  var dsi = web3.eth.contract(departmentsAbi).at(departmentsAddress);
+  var depts = dsi.getDepartments.call();
+  var allSchemes = [];
+  for(var i = 0; i<depts.length; i++){
+    var departmentAbi = department_artifacts.abi;
+
+    var di = web3.eth.contract(departmentAbi).at(depts[i]);
+    var schemes = di.getSchemes.call();
+    for(var j = 0; j < schemes.length; j++){
+      var schemeAbi = scheme_artifacts.abi;
+      var dsi = web3.eth.contract(schemeAbi).at(schemes[j]);
+
+      var schemeName = dsi.name.call();
+      var eligibility = dsi.elig.call();
+
+      var benefit = dsi.bene.call();
+      // if(schemeNames != null && schemeNames.contains(schemeName)){
+      //   schemeHtml = schemeHtml + '<tr><td><input type="text" id="schemeName'+citizenSchemes+'" value="'+ schemeName + '"/></td><td><input type="text" id="schemeEligibility'+citizenSchemes+'" value="'+eligibility+'"/></td><td><input type="text" id="schemeBenefit'+citizenSchemes+'" value="'+benefit+'"/></td><td>PENDINGAPPROVAL</td></tr>';;
+      // }else{
+      schemeHtml = schemeHtml + '<tr><td><input type="text" id="schemeName'+citizenSchemes+'" value="'+ schemeName + '"/></td><td><input type="text" id="schemeEligibility'+citizenSchemes+'" value="'+eligibility+'"/></td><td><input type="text" id="schemeBenefit'+citizenSchemes+'" value="'+benefit+'"/></td><td><button id="applyScheme'+citizenSchemes+'" onclick="javascript:applyScheme('+citizenSchemes+','+schemes[j]+');">Apply</button></td></tr>';;
+      // }
+      citizenSchemeTable.html(schemeHtml);
+      citizenSchemes++;
+
+    }
+
+  }
+
+}
+
+function applyScheme(index, schemeAddress){
+  var account = $("#accountAddress").val();
+  myCitizenInstance.addEnrolledScheme(schemeAddress,"PENDINGAPPROVAL", {from: account, gas: 4712387}).then(
+          		function(){
+                $("#saveSchemeResult").html("Scheme Applied successfully");
+
+
+              }
+
+            );
+            var schemeAbi = scheme_artifacts.abi;
+            var dsi = web3.eth.contract(schemeAbi).at(schemeAddress);
+            dsi.addCitizen(myCitizenInstance.address, {from: account, gas: 4712387}).then(
+                    		function(){
+                          $("#saveSchemeResult").html("Scheme Applied successfully");
+
+
+                        }
+
+                      );
+
+}
 
 // // Update Citizen
 function updateCitizen(name, dob, gender, income, caste) {
@@ -423,8 +537,10 @@ function exisitingDepartment(account, contract) {
 
         $("#contractAddress").val(myDepartmentInstance.address);
         $("#accountAddress").val(account);
+
         fetchDepartmentProfile();
-    		//$("#patientContractAddress").html(myPatientInstance.address);
+
+        //$("#patientContractAddress").html(myPatientInstance.address);
 
     	});
 
@@ -637,6 +753,8 @@ console.log("window onload...");
     var caste = $("#citizenCaste").val();
 		updateCitizenCaste(caste);
 	});
+
+
 
   /**
   Department related code

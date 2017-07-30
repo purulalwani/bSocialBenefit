@@ -1,5 +1,6 @@
 pragma solidity ^0.4.2;
 import "./Document.sol";
+import "./SchemeEnrolled.sol";
 
 contract Citizen {
 
@@ -102,6 +103,36 @@ contract Citizen {
     //mapping(string=>string) la;
     //la[key] = value;
     accessors[_accessor][key] =value;
+  }
+
+  function addEnrolledScheme(address scheme, string status){
+    SchemeEnrolled se = new SchemeEnrolled(scheme, status);
+
+    schemesEnrolled.push(se);
+  }
+
+  function getSchemesEnrolled() returns (address[]){
+    return schemesEnrolled;
+  }
+
+  function addFamilyMember(address familyMember){
+
+    familyMembers.push(familyMember);
+  }
+
+  function getFamilyMembers() returns (address[]){
+
+    return familyMembers;
+  }
+
+  function setParent(address parent){
+
+    familyHead = parent;
+  }
+
+  function getParent() returns (address){
+
+    return familyHead;
   }
 
 //   function getAccessors(address provider) ownerOnly  returns (mapping(address=>mapping(string=>string))){
