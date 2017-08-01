@@ -85,6 +85,10 @@ if(account != null && account != ''){
 
           $("#citizenCaste").val("");
 
+          var citizenLogTable = $("#citizenLog");
+          var citizenLogHtml = "<tr><th>Event</th><th>Name</th><th>DOB</th><th>Gender</th><th>Caste</th><th>Income</th><th>Block #</th></tr>";
+
+          citizenLogTable.html(citizenLogHtml);
     		//$("#patientContractAddress").html(myPatientInstance.address);
 
     	});
